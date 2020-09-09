@@ -9,7 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{73FC87D9-2DB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6664D165-2970-4612-9989-8166F58385EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fifthlang_tests", "test\fifthlang_tests\fifthlang_tests.csproj", "{A6778304-17DE-43F3-B7C6-5A01B8F2012D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fifthlang_tests", "test\fifthlang_tests\fifthlang_tests.csproj", "{A6778304-17DE-43F3-B7C6-5A01B8F2012D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{7B73DDD8-714D-4D78-B9E3-0352ABB8D101}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

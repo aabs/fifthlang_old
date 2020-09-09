@@ -38,12 +38,21 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">YOUR_TITLE</h3>
+  <h3 align="center">Fifth</h3>
 
   <p align="center">
-    YOUR_SHORT_DESCRIPTION
+    A small, but ultimately to be turing complete, programming language geared towards manipulating knowledge graphs using RDF.
+
+    The project has only just started, but ultimately I hope to create a language with:
+
+    - W3C RDF/OWL standards compliance
+    - More familar syntax for knowledge handling
+    - Lexical Scoping
+    - Common primitive data types
+    - Function Definitions
+
     <br />
-    <a href="https://github.com/aabs/fifthlang"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/aabs/fifthlang/docs"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/aabs/fifthlang">View Demo</a>
@@ -156,7 +165,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@aabs](https://twitter.com/aabs) - matthews.andrew@gmail.com
+Andrew Matthews - [@aabs](https://twitter.com/aabs) - matthews.andrew@gmail.com
 
 Project Link: [https://github.com/aabs/fifthlang](https://github.com/aabs/fifthlang)
 

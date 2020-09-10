@@ -2,9 +2,9 @@ using fifth;
 using NUnit.Framework;
 using System;
 
-namespace fifthlang_tests
+namespace fifth_test
 {
-    public class TestFuncWrapper
+    public class FuncWrapperTest
     {
         [SetUp]
         public void Setup()

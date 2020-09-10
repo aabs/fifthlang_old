@@ -1,1 +1,28 @@
-﻿
+﻿COMPILER Fifth
+
+/*--------------------------------------------------------------------------*/
+CHARACTERS
+  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  digit = "0123456789".
+/*  cr  = '\r'.
+  tab = '\t'.*/
+  lf  = '\n'.
+
+TOKENS
+  ident  = letter {letter | digit}.
+  number = digit {digit}.
+
+COMMENTS FROM "/*" TO "*/" NESTED
+COMMENTS FROM "//" TO lf
+
+// IGNORE cr + lf + tab
+
+
+
+PRODUCTIONS
+/*------------------------------------------------------------------------*/
+
+Expr = '(' ident ')' .
+Fifth = Expr .
+
+END Fifth.

@@ -12,6 +12,15 @@ namespace fifth.VirtualMachine
         {
             Stack = stack;
         }
+        /// <summary>
+        /// Resolve, attempts to convert functions at the top of the stack into actual values.  
+        /// If they are real functions, then it recurses into those functions till it is able 
+        /// to get a number off the stack to return.
+        /// </summary>
+        /// <returns>
+        /// an object. Either the value on the top of the stack, or the result of 
+        /// dispatching the function on top of the stack.
+        /// </returns>
         object Resolve()
         {
             if (Stack.IsEmpty())
@@ -32,9 +41,12 @@ namespace fifth.VirtualMachine
                 x = Stack.Pop();
                 return x.Invoke();
             }
-
         }
 
+        /// <summary>
+        /// Dispatch takes a function from the top of the stack, and then attempts to 
+        /// invoke it with arguments gathered from the stack below
+        /// </summary>
         public void Dispatch()
         {
             // if stack empty do nothing

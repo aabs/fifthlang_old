@@ -6,7 +6,11 @@ namespace fifth
 {
     public class FuncStack
     {
-        public Stack<FuncWrapper> Stack => new Stack<FuncWrapper>();
+        public FuncStack()
+        {
+            Stack = new Stack<FuncWrapper>();
+        }
+        public Stack<FuncWrapper> Stack { get; private set; }
         public void Push(FuncWrapper funcWrapper)
         {
             Stack.Push(funcWrapper);

@@ -78,6 +78,7 @@ namespace fifth.VirtualMachine
                     args.Add(o);
                 }
                 //    pass values to x as args
+                args.Reverse(); // return to same order they were passsed onto the stack
                 var result = x.Invoke(args.ToArray());
                 //    push result onto stack
                 Stack.Push(result.AsFun());

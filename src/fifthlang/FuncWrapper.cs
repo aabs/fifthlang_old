@@ -27,5 +27,10 @@ namespace fifth
             Function = f;
         }
 
+        public object Invoke(params object[] args)
+        {
+            return this.Function.DynamicInvoke(args);
+        }
+
     }
 }

@@ -42,5 +42,19 @@ namespace fifth_test
             Assert.That(sut.ArgTypes[0], Is.EqualTo(typeof(int)));
             Assert.That(sut.ArgTypes[1], Is.EqualTo(typeof(float)));
         }
+
+        [Test]
+        public void TestCanInvokeWrappedFunction()
+        {
+            var f5 = 5.AsFun();
+            Assert.That(f5.Invoke(), Is.EqualTo(5));
+        }
+
+        [Test]
+        public void TestCanInvokeWrappedFunctionTaking2Params()
+        {
+            var add = Fun.Wrap((int x, int y) => x + y);
+            Assert.That(add.Invoke(1, 2), Is.EqualTo(3));
+        }
     }
 }

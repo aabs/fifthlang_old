@@ -19,6 +19,7 @@ namespace fifth
         public List<Type> ArgTypes { get; }
         public Type ResultType { get; }
         public Delegate Function { get; }
+        public bool IsValue => ArgTypes.Count == 0;
 
         public FuncWrapper(List<Type> argTypes, Type resultType, Delegate f)
         {

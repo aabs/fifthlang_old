@@ -11,9 +11,10 @@ namespace fifth
             Stack = new Stack<FuncWrapper>();
         }
         public Stack<FuncWrapper> Stack { get; private set; }
-        public void Push(FuncWrapper funcWrapper)
-        {
-            Stack.Push(funcWrapper);
-        }
+        public void Push(FuncWrapper funcWrapper) => Stack.Push(funcWrapper);
+
+        internal bool IsEmpty() => Stack.Count == 0;
+
+        internal FuncWrapper Pop() => Stack.Pop();
     }
 }

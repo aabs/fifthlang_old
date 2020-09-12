@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace fifthlang_tests
 {
-    class DispatcherTests
+    internal class DispatcherTests
     {
         [Test]
         public void TestCanDispatchAnAdd()
@@ -25,23 +25,6 @@ namespace fifthlang_tests
         }
 
         [Test]
-        public void TestCanDispatchStrings()
-        {
-            var add = Fun.Wrap((string x, string y) => $"{x} {y}");
-            FuncStack stack = new();
-            var sut = new Dispatcher(stack);
-            stack.Push("hello".AsFun());
-            stack.Push("world".AsFun());
-            stack.Push(add);
-            Assert.That(stack.Stack, Has.Count.EqualTo(3));
-            sut.Dispatch();
-            Assert.That(stack.Stack, Has.Count.EqualTo(1));
-            var x = stack.Stack.Pop();
-            Assert.That(x.IsValue, Is.True);
-            Assert.That(x.Invoke(), Is.EqualTo("hello world"));
-        }
-
-        [Test]
         public void TestCanDispatchNestedExpressions()
         {
             var add = Fun.Wrap((int x, int y) => x + y);
@@ -59,6 +42,23 @@ namespace fifthlang_tests
             var x = stack.Stack.Pop();
             Assert.That(x.IsValue, Is.True);
             Assert.That(x.Invoke(), Is.EqualTo(56));
+        }
+
+        [Test]
+        public void TestCanDispatchStrings()
+        {
+            var add = Fun.Wrap((string x, string y) => $"{x} {y}");
+            FuncStack stack = new();
+            var sut = new Dispatcher(stack);
+            stack.Push("hello".AsFun());
+            stack.Push("world".AsFun());
+            stack.Push(add);
+            Assert.That(stack.Stack, Has.Count.EqualTo(3));
+            sut.Dispatch();
+            Assert.That(stack.Stack, Has.Count.EqualTo(1));
+            var x = stack.Stack.Pop();
+            Assert.That(x.IsValue, Is.True);
+            Assert.That(x.Invoke(), Is.EqualTo("hello world"));
         }
     }
 }

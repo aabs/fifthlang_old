@@ -1,20 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace fifth
 {
-    public class FuncStack
+    /// <summary>
+    /// A stack of functions
+    /// </summary>
+    public class FuncStack : IFuncStack
     {
+        /// <summary>
+        /// Initializes a new instance of the <a onclick="return false;" href="FuncStack"
+        /// originaltag="see">FuncStack</a> class.
+        /// </summary>
         public FuncStack()
         {
             Stack = new Stack<FuncWrapper>();
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is empty.
+        /// </summary>
+        /// <value><c>true</c> if this instance is empty; otherwise, <c>false</c>.</value>
+        bool IFuncStack.IsEmpty => Stack.Count == 0;
+
+        /// <summary>
+        /// Gets the stack.
+        /// </summary>
+        /// <value>The stack.</value>
         public Stack<FuncWrapper> Stack { get; private set; }
+
+        /// <summary>
+        /// Pops an element from the top of the stack.
+        /// </summary>
+        /// <returns>The function at the top of the stack</returns>
+        public FuncWrapper Pop() => Stack.Pop();
+
+        /// <summary>
+        /// Pushes a function onto the stack.
+        /// </summary>
+        /// <param name="funcWrapper">The function wrapper.</param>
         public void Push(FuncWrapper funcWrapper) => Stack.Push(funcWrapper);
-
-        internal bool IsEmpty() => Stack.Count == 0;
-
-        internal FuncWrapper Pop() => Stack.Pop();
     }
 }

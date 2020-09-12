@@ -17,9 +17,9 @@ namespace fifth
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is empty.
+        /// Gets a value indicating whether the stack is empty.
         /// </summary>
-        /// <value><c>true</c> if this instance is empty; otherwise, <c>false</c>.</value>
+        /// <value><c>true</c> if this stack is empty; otherwise, <c>false</c>.</value>
         bool IFuncStack.IsEmpty => Stack.Count == 0;
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace fifth
         public Stack<FuncWrapper> Stack { get; private set; }
 
         /// <summary>
-        /// Pops an element from the top of the stack.
+        /// Pops a function from the top of the stack.
         /// </summary>
         /// <returns>The function at the top of the stack</returns>
         public FuncWrapper Pop() => Stack.Pop();

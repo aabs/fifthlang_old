@@ -1,8 +1,14 @@
 ﻿namespace fifth.VirtualMachine.PrimitiveTypes
 {
     [TypeTraits(IsPrimitive = true, IsNumeric = true, Keyword = "double")]
-    public static class PrimitiveDouble
+    public class PrimitiveDouble : IFifthType
     {
+        public static PrimitiveDouble Default = new PrimitiveDouble();
+
+        private PrimitiveDouble()
+        {
+        }
+
         [OperatorTraits(Position = OperatorPosition.Infix, OperatorRepresentation = "+")]
         public static double Add(double left, double right) => left + right;
 

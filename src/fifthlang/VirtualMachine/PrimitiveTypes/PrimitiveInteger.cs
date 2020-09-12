@@ -1,8 +1,14 @@
 ﻿namespace fifth.VirtualMachine.PrimitiveTypes
 {
     [TypeTraits(IsPrimitive = true, IsNumeric = true, Keyword = "int")]
-    public static class PrimitiveInteger
+    public class PrimitiveInteger : IFifthType
     {
+        public static PrimitiveInteger Default = new PrimitiveInteger();
+
+        private PrimitiveInteger()
+        {
+        }
+
         [OperatorTraits(Position = OperatorPosition.Infix, OperatorRepresentation = "+")]
         public static int Add(int left, int right) => left + right;
 

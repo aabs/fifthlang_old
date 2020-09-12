@@ -1,8 +1,14 @@
 ﻿namespace fifth.VirtualMachine.PrimitiveTypes
 {
     [TypeTraits(IsPrimitive = true, IsNumeric = true, Keyword = "long")]
-    public static class PrimitiveLong
+    public class PrimitiveLong : IFifthType
     {
+        public static PrimitiveLong Default = new PrimitiveLong();
+
+        private PrimitiveLong()
+        {
+        }
+
         [OperatorTraits(Position = OperatorPosition.Infix, OperatorRepresentation = "+")]
         public static long Add(long left, long right) => left + right;
 

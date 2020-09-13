@@ -13,6 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fifthlang_tests", "test\fif
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{7B73DDD8-714D-4D78-B9E3-0352ABB8D101}"
 	ProjectSection(SolutionItems) = preProject
+		doc\examples\ex1.printsum.5th = doc\examples\ex1.printsum.5th
 		README.md = README.md
 	EndProjectSection
 EndProject

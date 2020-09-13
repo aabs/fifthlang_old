@@ -6,8 +6,13 @@ using System;
 public class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
-	public const int _number = 2;
-	public const int maxT = 5;
+	public const int _use = 2;
+	public const int _string = 3;
+	public const int _float = 4;
+	public const int _int = 5;
+	public const int _endexpr = 6;
+	public const int _sepexpr = 7;
+	public const int maxT = 11;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -79,14 +84,89 @@ public class Parser {
 	}
 
 	
-	void Expr() {
-		Expect(3);
+	void Expression() {
+		if (la.kind == 5) {
+			Get();
+		} else if (la.kind == 3) {
+			Get();
+		} else SynErr(12);
+	}
+
+	void ExpressionList() {
+		Expression();
+		while (la.kind == 7) {
+			Get();
+			Expression();
+		}
+	}
+
+	void ModuleName() {
 		Expect(1);
-		Expect(4);
+	}
+
+	void TypeImport() {
+		Expect(2);
+		ModuleName();
+		Expect(6);
+	}
+
+	void TypeImports() {
+		while (la.kind == 2) {
+			TypeImport();
+		}
+	}
+
+	void TypeName() {
+		Expect(1);
+	}
+
+	void ParameterDeclaration() {
+		TypeName();
+		Expect(1);
+	}
+
+	void ParameterDeclarations() {
+		ParameterDeclaration();
+		while (la.kind == 7) {
+			Get();
+			ParameterDeclarations();
+		}
+	}
+
+	void ParameterDeclarationList() {
+		Expect(8);
+		if (la.kind == 1) {
+			ParameterDeclarations();
+		}
+		Expect(9);
+	}
+
+	void FunctionName() {
+		Expect(1);
+	}
+
+	void FunctionDefinition() {
+		FunctionName();
+		ParameterDeclarationList();
+		Expect(10);
+		ExpressionList();
+		Expect(6);
+	}
+
+	void FunctionDefinitions() {
+		FunctionDefinition();
+		while (la.kind == 1) {
+			FunctionDefinition();
+		}
+	}
+
+	void ModuleDefinition() {
+		TypeImports();
+		FunctionDefinitions();
 	}
 
 	void Fifth() {
-		Expr();
+		ModuleDefinition();
 	}
 
 
@@ -101,7 +181,7 @@ public class Parser {
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x}
 
 	};
 } // end Parser
@@ -117,10 +197,17 @@ public class Errors {
 		switch (n) {
 			case 0: s = "EOF expected"; break;
 			case 1: s = "ident expected"; break;
-			case 2: s = "number expected"; break;
-			case 3: s = "\"(\" expected"; break;
-			case 4: s = "\")\" expected"; break;
-			case 5: s = "??? expected"; break;
+			case 2: s = "use expected"; break;
+			case 3: s = "string expected"; break;
+			case 4: s = "float expected"; break;
+			case 5: s = "int expected"; break;
+			case 6: s = "endexpr expected"; break;
+			case 7: s = "sepexpr expected"; break;
+			case 8: s = "\"(\" expected"; break;
+			case 9: s = "\")\" expected"; break;
+			case 10: s = "\"=>\" expected"; break;
+			case 11: s = "??? expected"; break;
+			case 12: s = "invalid Expression"; break;
 
 			default: s = "error " + n; break;
 		}

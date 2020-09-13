@@ -4,13 +4,19 @@
 CHARACTERS
   letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
   digit = "0123456789".
-/*  cr  = '\r'.
-  tab = '\t'.*/
+  cr  = '\r'.
+  tab = '\t'.
   lf  = '\n'.
+  space = ' '.
 
 TOKENS
   ident  = letter {letter | digit}.
-  number = digit {digit}.
+  use    = "use" .
+  string = '"' {letter | space | tab | digit} '"' .
+  float  = digit {digit} '.' {digit} ['E' ['+'|'-'] digit {digit}].
+  int = ['+' | '-'] digit {digit} .
+  endexpr = ';'.
+  sepexpr = ','.
 
 COMMENTS FROM "/*" TO "*/" NESTED
 COMMENTS FROM "//" TO lf
@@ -22,7 +28,19 @@ COMMENTS FROM "//" TO lf
 PRODUCTIONS
 /*------------------------------------------------------------------------*/
 
-Expr = '(' ident ')' .
-Fifth = Expr .
+Expression = int | string .
+ExpressionList = Expression {sepexpr Expression} .
+ModuleName = ident .
+TypeImport = use ModuleName endexpr.
+TypeImports = {TypeImport} .
+TypeName = ident .
+ParameterDeclaration = TypeName ident .
+ParameterDeclarations = ParameterDeclaration {"," ParameterDeclarations} .
+ParameterDeclarationList =	"(" [ParameterDeclarations] ")" .
+FunctionName = ident .
+FunctionDefinition = FunctionName ParameterDeclarationList "=>" ExpressionList ";" .
+FunctionDefinitions = FunctionDefinition {FunctionDefinition} .
+ModuleDefinition = TypeImports FunctionDefinitions .
+Fifth = ModuleDefinition .
 
 END Fifth.

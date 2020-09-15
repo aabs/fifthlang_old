@@ -4,7 +4,7 @@ namespace fifth.Parser.AST
 {
     public class ParameterDeclaration
     {
-        public IFifthType FifthType { get; set; }
-        public string Name { get; set; }
+        public string ParameterName { get; set; }
+        public IFifthType ParameterType { get; set; }
     }
 }

@@ -1,4 +1,12 @@
-﻿COMPILER Fifth
+﻿using fifth.Parser.AST;
+using fifth.Parser.AST.Builders;
+COMPILER Fifth
+
+	public ProgramBuilder astBuilder;
+	FunctionBuilder funcBuilder;
+	ParameterListBuilder parameterListBuilder;
+	ExpressionListBuilder expressionListBuilder;
+	ParameterDeclarationBuilder parameterDeclarationBuilder;
 
 /*--------------------------------------------------------------------------*/
 CHARACTERS
@@ -27,20 +35,96 @@ COMMENTS FROM "//" TO lf
 
 PRODUCTIONS
 /*------------------------------------------------------------------------*/
+Ident<out string name>   
+= 
+	ident						(. name = t.val; .)
+.
 
-Expression = int | string .
-ExpressionList = Expression {sepexpr Expression} .
+Int<out int value>   
+= 
+	int							(. value = Int32.Parse(t.val); .)
+.
+
+String<out string value>   
+= 
+	string						(. value = t.val; .)
+.
+
+Float<out float value>   
+= 
+	float						(. value = Single.Parse(t.val); .)
+.
+
+Expression<out Expression expression> (. 
+								string stringValue; 
+								int intValue; 
+								float floatValue; 
+								expression = null;
+								.) 
+= 
+	Int<out intValue>			(. expression = new LiteralExpression<int>(intValue); .)
+	| Float<out floatValue>			(. expression = new LiteralExpression<float>(floatValue); .)
+	| String<out stringValue>	(. expression = new LiteralExpression<string>(stringValue); .)
+.
+
+ExpressionList					(. 
+								Expression expression;
+								expressionListBuilder = ExpressionListBuilder.Start(); 
+								.) 
+= 
+	Expression<out expression>  (. expressionListBuilder.WithExpression(expression); .)
+	{sepexpr ExpressionList} 
+.
+
 ModuleName = ident .
 TypeImport = use ModuleName endexpr.
-TypeImports = {TypeImport} .
-TypeName = ident .
-ParameterDeclaration = TypeName ident .
-ParameterDeclarations = ParameterDeclaration {"," ParameterDeclarations} .
-ParameterDeclarationList =	"(" [ParameterDeclarations] ")" .
-FunctionName = ident .
-FunctionDefinition = FunctionName ParameterDeclarationList "=>" ExpressionList ";" .
-FunctionDefinitions = FunctionDefinition {FunctionDefinition} .
-ModuleDefinition = TypeImports FunctionDefinitions .
-Fifth = ModuleDefinition .
+TypeImports = TypeImport {TypeImport} .
+
+ParameterDeclaration			(. 
+								string typeName, paramName; 
+								parameterDeclarationBuilder = ParameterDeclarationBuilder.Start(); 
+								.)
+= 
+	Ident<out typeName>			(. parameterDeclarationBuilder.WithTypeName(typeName); .)		
+	Ident<out paramName>		(. parameterDeclarationBuilder.WithName(paramName); .)
+.
+
+ParameterDeclarations 
+= 
+	ParameterDeclaration		(. parameterListBuilder.WithParameter(parameterDeclarationBuilder.Build()); .)		
+	{"," ParameterDeclarations} 
+.
+
+ParameterDeclarationList		(. parameterListBuilder = ParameterListBuilder.Start(); .) 
+=	
+	"(" 
+	[ParameterDeclarations] 
+	")" 
+.
+
+FunctionName					(. string funcName; .)
+= 
+	Ident<out funcName>			(. funcBuilder.WithName(funcName);.)
+.
+
+FunctionDefinition				(. funcBuilder = FunctionBuilder.Start(); .) 
+= 
+	FunctionName 
+	ParameterDeclarationList	(. funcBuilder.WithParameters( parameterListBuilder.Build() );.)
+	"=>" 
+	ExpressionList 
+	";" 
+.
+
+FunctionDefinitions 
+= 
+	FunctionDefinition			(. astBuilder.WithFunction(funcBuilder.Build()); .)
+	{ FunctionDefinitions } .
+
+Fifth							(. astBuilder = ProgramBuilder.Start(); .)
+= 
+	TypeImports 
+	FunctionDefinitions 
+.
 
 END Fifth.

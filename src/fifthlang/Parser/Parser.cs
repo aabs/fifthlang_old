@@ -1,3 +1,6 @@
+using fifth.Parser.AST;
+using fifth.Parser.AST.Builders;
+
 
 using System;
 
@@ -25,6 +28,13 @@ public class Parser {
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
 
+public ProgramBuilder astBuilder;
+	FunctionBuilder funcBuilder;
+	ParameterListBuilder parameterListBuilder;
+	ExpressionListBuilder expressionListBuilder;
+	ParameterDeclarationBuilder parameterDeclarationBuilder;
+
+/*--------------------------------------------------------------------------*/
 
 
 	public Parser(Scanner scanner) {
@@ -84,19 +94,53 @@ public class Parser {
 	}
 
 	
-	void Expression() {
+	void Ident(out string name) {
+		Expect(1);
+		name = t.val; 
+	}
+
+	void Int(out int value) {
+		Expect(5);
+		value = Int32.Parse(t.val); 
+	}
+
+	void String(out string value) {
+		Expect(3);
+		value = t.val; 
+	}
+
+	void Float(out float value) {
+		Expect(4);
+		value = Single.Parse(t.val); 
+	}
+
+	void Expression(out Expression expression) {
+		string stringValue; 
+		int intValue; 
+		float floatValue; 
+		expression = null;
+		
 		if (la.kind == 5) {
-			Get();
+			Int(out intValue);
+			expression = new LiteralExpression<int>(intValue); 
+		} else if (la.kind == 4) {
+			Float(out floatValue);
+			expression = new LiteralExpression<float>(floatValue); 
 		} else if (la.kind == 3) {
-			Get();
+			String(out stringValue);
+			expression = new LiteralExpression<string>(stringValue); 
 		} else SynErr(12);
 	}
 
 	void ExpressionList() {
-		Expression();
+		Expression expression;
+		expressionListBuilder = ExpressionListBuilder.Start(); 
+		
+		Expression(out expression);
+		expressionListBuilder.WithExpression(expression); 
 		while (la.kind == 7) {
 			Get();
-			Expression();
+			ExpressionList();
 		}
 	}
 
@@ -111,22 +155,25 @@ public class Parser {
 	}
 
 	void TypeImports() {
+		TypeImport();
 		while (la.kind == 2) {
 			TypeImport();
 		}
 	}
 
-	void TypeName() {
-		Expect(1);
-	}
-
 	void ParameterDeclaration() {
-		TypeName();
-		Expect(1);
+		string typeName, paramName; 
+		parameterDeclarationBuilder = ParameterDeclarationBuilder.Start(); 
+		
+		Ident(out typeName);
+		parameterDeclarationBuilder.WithTypeName(typeName); 
+		Ident(out paramName);
+		parameterDeclarationBuilder.WithName(paramName); 
 	}
 
 	void ParameterDeclarations() {
 		ParameterDeclaration();
+		parameterListBuilder.WithParameter(parameterDeclarationBuilder.Build()); 
 		while (la.kind == 7) {
 			Get();
 			ParameterDeclarations();
@@ -134,6 +181,7 @@ public class Parser {
 	}
 
 	void ParameterDeclarationList() {
+		parameterListBuilder = ParameterListBuilder.Start(); 
 		Expect(8);
 		if (la.kind == 1) {
 			ParameterDeclarations();
@@ -142,12 +190,16 @@ public class Parser {
 	}
 
 	void FunctionName() {
-		Expect(1);
+		string funcName; 
+		Ident(out funcName);
+		funcBuilder.WithName(funcName);
 	}
 
 	void FunctionDefinition() {
+		funcBuilder = FunctionBuilder.Start(); 
 		FunctionName();
 		ParameterDeclarationList();
+		funcBuilder.WithParameters( parameterListBuilder.Build() );
 		Expect(10);
 		ExpressionList();
 		Expect(6);
@@ -155,18 +207,16 @@ public class Parser {
 
 	void FunctionDefinitions() {
 		FunctionDefinition();
+		astBuilder.WithFunction(funcBuilder.Build()); 
 		while (la.kind == 1) {
-			FunctionDefinition();
+			FunctionDefinitions();
 		}
 	}
 
-	void ModuleDefinition() {
+	void Fifth() {
+		astBuilder = ProgramBuilder.Start(); 
 		TypeImports();
 		FunctionDefinitions();
-	}
-
-	void Fifth() {
-		ModuleDefinition();
 	}
 
 

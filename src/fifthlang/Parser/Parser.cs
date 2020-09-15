@@ -33,6 +33,7 @@ public ProgramBuilder astBuilder;
 	ParameterListBuilder parameterListBuilder;
 	ExpressionListBuilder expressionListBuilder;
 	ParameterDeclarationBuilder parameterDeclarationBuilder;
+	FunctionInvocationBuilder functionInvocationBuilder;
 
 /*--------------------------------------------------------------------------*/
 
@@ -118,9 +119,13 @@ public ProgramBuilder astBuilder;
 		string stringValue; 
 		int intValue; 
 		float floatValue; 
+		FunctionInvocationExpression fiexp;
 		expression = null;
 		
-		if (la.kind == 5) {
+		if (la.kind == 1) {
+			FunctionInvocation();
+			expression = functionInvocationBuilder.Build(); 
+		} else if (la.kind == 5) {
 			Int(out intValue);
 			expression = new LiteralExpression<int>(intValue); 
 		} else if (la.kind == 4) {
@@ -130,6 +135,33 @@ public ProgramBuilder astBuilder;
 			String(out stringValue);
 			expression = new LiteralExpression<string>(stringValue); 
 		} else SynErr(12);
+	}
+
+	void FunctionInvocation() {
+		string funcName;
+		functionInvocationBuilder = FunctionInvocationBuilder.Start();		
+		Ident(out funcName);
+		functionInvocationBuilder.WithName(funcName); 
+		ArgumentList();
+		
+	}
+
+	void ArgumentList() {
+		
+		Expect(8);
+		Arguments();
+		
+		Expect(9);
+	}
+
+	void Arguments() {
+		Expression expression; 
+		Expression(out expression);
+		functionInvocationBuilder.WithArgument(new Argument("", expression)); 
+		while (la.kind == 7) {
+			Get();
+			Arguments();
+		}
 	}
 
 	void ExpressionList() {
@@ -145,7 +177,9 @@ public ProgramBuilder astBuilder;
 	}
 
 	void ModuleName() {
-		Expect(1);
+		string modName; 
+		Ident(out modName);
+		
 	}
 
 	void TypeImport() {
@@ -196,7 +230,7 @@ public ProgramBuilder astBuilder;
 	}
 
 	void FunctionDefinition() {
-		funcBuilder = FunctionBuilder.Start(); 
+		string funcName; funcBuilder = FunctionBuilder.Start(); 
 		FunctionName();
 		ParameterDeclarationList();
 		funcBuilder.WithParameters( parameterListBuilder.Build() );

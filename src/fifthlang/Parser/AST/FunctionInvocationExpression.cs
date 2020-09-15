@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using fifth.Parser.AST.Builders;
+using System.Collections.Generic;
 
 namespace fifth.Parser.AST
 {
     public class FunctionInvocationExpression : Expression
     {
-        public Expression Body { get; set; }
-        private IEnumerable<ParameterDeclaration> Parameters { get; set; }
+        public List<Argument> Arguments { get; set; }
+        public string FunctionName { get; set; }
     }
 }

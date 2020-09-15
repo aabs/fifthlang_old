@@ -7,6 +7,7 @@ COMPILER Fifth
 	ParameterListBuilder parameterListBuilder;
 	ExpressionListBuilder expressionListBuilder;
 	ParameterDeclarationBuilder parameterDeclarationBuilder;
+	FunctionInvocationBuilder functionInvocationBuilder;
 
 /*--------------------------------------------------------------------------*/
 CHARACTERS
@@ -29,7 +30,7 @@ TOKENS
 COMMENTS FROM "/*" TO "*/" NESTED
 COMMENTS FROM "//" TO lf
 
-// IGNORE cr + lf + tab
+IGNORE cr + lf + tab
 
 
 
@@ -59,13 +60,35 @@ Expression<out Expression expression> (.
 								string stringValue; 
 								int intValue; 
 								float floatValue; 
+								FunctionInvocationExpression fiexp;
 								expression = null;
 								.) 
-= 
-	Int<out intValue>			(. expression = new LiteralExpression<int>(intValue); .)
-	| Float<out floatValue>			(. expression = new LiteralExpression<float>(floatValue); .)
+=
+	  FunctionInvocation 		(. expression = functionInvocationBuilder.Build(); .)
+	| Int<out intValue>			(. expression = new LiteralExpression<int>(intValue); .)
+	| Float<out floatValue>		(. expression = new LiteralExpression<float>(floatValue); .)
 	| String<out stringValue>	(. expression = new LiteralExpression<string>(stringValue); .)
 .
+
+FunctionInvocation				(.  string funcName;
+									functionInvocationBuilder = FunctionInvocationBuilder.Start();		.)
+=
+	Ident<out funcName>			(. functionInvocationBuilder.WithName(funcName); .)
+	ArgumentList				(.  .)
+.
+Arguments						(. Expression expression; .)
+=
+	Expression<out expression>  (. functionInvocationBuilder.WithArgument(new Argument("", expression)); .)
+	{sepexpr Arguments} 
+.
+
+ArgumentList					(. .) 
+=	
+	"(" 
+	Arguments					(. .)
+	")" 
+.
+
 
 ExpressionList					(. 
 								Expression expression;
@@ -76,8 +99,12 @@ ExpressionList					(.
 	{sepexpr ExpressionList} 
 .
 
-ModuleName = ident .
-TypeImport = use ModuleName endexpr.
+ModuleName						(. string modName; .) 
+= 
+	Ident<out modName>			(. .)
+.
+
+TypeImport = "use" ModuleName ';' .
 TypeImports = TypeImport {TypeImport} .
 
 ParameterDeclaration			(. 
@@ -102,14 +129,16 @@ ParameterDeclarationList		(. parameterListBuilder = ParameterListBuilder.Start()
 	")" 
 .
 
+
 FunctionName					(. string funcName; .)
 = 
 	Ident<out funcName>			(. funcBuilder.WithName(funcName);.)
 .
 
-FunctionDefinition				(. funcBuilder = FunctionBuilder.Start(); .) 
+
+FunctionDefinition				(. string funcName; funcBuilder = FunctionBuilder.Start(); .) 
 = 
-	FunctionName 
+	FunctionName
 	ParameterDeclarationList	(. funcBuilder.WithParameters( parameterListBuilder.Build() );.)
 	"=>" 
 	ExpressionList 

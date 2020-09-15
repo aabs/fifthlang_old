@@ -356,7 +356,7 @@ public class Scanner {
 
 	Token NextToken() {
 		while (ch == ' ' ||
-			false
+			ch >= 9 && ch <= 10 || ch == 13
 		) NextCh();
 		if (ch == '/' && Comment0() ||ch == '/' && Comment1()) return NextToken();
 		int recKind = noSym;

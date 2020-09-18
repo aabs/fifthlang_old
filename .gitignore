@@ -363,3 +363,5 @@ FodyWeavers.xsd
 
 *.old
 /.vscode
+.antlr/
+tags

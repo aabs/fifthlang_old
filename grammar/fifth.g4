@@ -1,4 +1,4 @@
-   grammar fifth;
+grammar fifth;
 
 fifth:
     module_import*
@@ -29,6 +29,7 @@ expression_list:
                    expression
                    (Comma expression)*
                ;
+
 
 equation
    : expression relop expression

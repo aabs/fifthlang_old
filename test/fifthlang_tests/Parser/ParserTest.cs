@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace fifth.Parser.Tests
@@ -17,9 +18,10 @@ namespace fifth.Parser.Tests
         {
             string program = TestProgram;
             var parser = ParseProgram(program);
-            var ast = parser.astBuilder.Build();
+            var ast = parser.programBuilder.Build();
             ast.Should().NotBeNull();
             ast.FunctionDefinitions.Count.Should().Be(2);
+            ast.FunctionDefinitions.First(x => x.Name == "main").Body.Should().NotBeNull();
         }
 
         private static global::Parser ParseProgram(string program)

@@ -6,5 +6,6 @@ namespace fifth.Parser.AST
     {
         public string ParameterName { get; set; }
         public IFifthType ParameterType { get; set; }
+        public string TypeName { get; set; }
     }
 }

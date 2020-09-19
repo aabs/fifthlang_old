@@ -2,30 +2,59 @@
 using fifth.Parser.AST.Builders;
 COMPILER Fifth
 
-	public ProgramBuilder astBuilder;
-	FunctionBuilder funcBuilder;
-	ParameterListBuilder parameterListBuilder;
-	ExpressionListBuilder expressionListBuilder;
-	ParameterDeclarationBuilder parameterDeclarationBuilder;
-	FunctionInvocationBuilder functionInvocationBuilder;
+	public ProgramBuilder			  programBuilder;
+	FunctionBuilder					  funcBuilder;
+	ListBuilder<ParameterDeclaration> parameterDeclarationListBuilder;
+	ListBuilder<Expr>				  expressionListBuilder;
+	ParameterDeclarationBuilder		  parameterDeclarationBuilder;
+	FunctionInvocationBuilder		  functionInvocationBuilder;
+	ExprBuilder						  exprBuilder;
+	SimExprBuilder					  simExprBuilder;
+	TermBuilder						  termBuilder;
+	bool FollowedByBracket() 
+	{   
+	Token x = scanner.Peek();  
+	return x.kind == _lbracket; 
+	}
 
 /*--------------------------------------------------------------------------*/
 CHARACTERS
-  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  ucLetter = 'A'..'Z'.
+  lcLetter = 'a'..'z'.
+  letter = lcLetter + ucLetter.
   digit = "0123456789".
+  hexDigit = digit + "ABCDEF".
   cr  = '\r'.
   tab = '\t'.
   lf  = '\n'.
   space = ' '.
+  notQuote = ANY - '"' .
 
 TOKENS
   ident  = letter {letter | digit}.
-  use    = "use" .
-  string = '"' {letter | space | tab | digit} '"' .
-  float  = digit {digit} '.' {digit} ['E' ['+'|'-'] digit {digit}].
+  string = '"' notQuote '"' .
   int = ['+' | '-'] digit {digit} .
-  endexpr = ';'.
-  sepexpr = ','.
+  float  = digit {digit} '.' {digit} ['E' ['+'|'-'] digit {digit}].
+  use    = "use" .
+  semicolon = ';'.
+  comma = ','.
+  lbracket = '('.
+  rbracket = ')'.
+  lambda = "=>" .
+  plus = '+'.
+  minus = '-'.
+  times = '*'.
+  divide = '/'.
+
+  equ = "==".
+  lt = '<'.
+  gt = '>'.
+  le = "<=".
+  ge = ">=".
+
+
+
+
 
 COMMENTS FROM "/*" TO "*/" NESTED
 COMMENTS FROM "//" TO lf
@@ -36,6 +65,66 @@ IGNORE cr + lf + tab
 
 PRODUCTIONS
 /*------------------------------------------------------------------------*/
+AddOp<out AddOperator op>		(.op = AddOperator.Plus;	.)
+= 
+	( plus						(..)
+	| minus						(.op = AddOperator.Minus;	.)
+	)
+.
+
+MulOp<out MulOperator op>		(.op = MulOperator.Multiply;	.)
+= 
+	( times						(.	.)
+	| divide						(.op = MulOperator.Divide;	.)
+	)
+.
+
+RelOp<out RelationalOperator op>(.op = RelationalOperator.Equal;	.)
+= 
+	( equ						(.	.)
+	| lt						(.op = RelationalOperator.LessThan;	.)
+	| gt						(.op = RelationalOperator.GreaterThan;	.)
+	| le						(.op = RelationalOperator.LessThanOrEqual;	.)
+	| ge						(.op = RelationalOperator.GreaterThanOrEqual;	.)
+	)
+.
+
+Expr<out Expr expr>				(. SimExpr left, right; 
+									RelationalOperator relop;
+									expr = null;
+								.)
+= SimExpr<out left>				
+	[
+	RelOp<out relop>
+	SimExpr<out right>
+	]
+.
+
+SimExpr<out SimExpr expr>		(. 
+								   Term left, right; 
+								   AddOperator addop;
+								   expr = null;
+								.)
+= Term<out left>
+{
+	AddOp<out addop>
+	Term<out right>
+}
+.
+
+Term<out Term term>				(.
+									Factor left, right; 
+									MulOperator mulop;
+									term = null;
+								.)
+=
+	Factor<out left>
+	{
+	MulOp<out mulop>
+	Factor<out right>
+	}
+.
+
 Ident<out string name>   
 = 
 	ident						(. name = t.val; .)
@@ -56,18 +145,23 @@ Float<out float value>
 	float						(. value = Single.Parse(t.val); .)
 .
 
-Expression<out Expression expression> (. 
+Factor<out Factor factor>		(.
 								string stringValue; 
 								int intValue; 
 								float floatValue; 
 								FunctionInvocationExpression fiexp;
-								expression = null;
+								factor = null;
+								Expr e;
 								.) 
 =
-	  FunctionInvocation 		(. expression = functionInvocationBuilder.Build(); .)
-	| Int<out intValue>			(. expression = new LiteralExpression<int>(intValue); .)
-	| Float<out floatValue>		(. expression = new LiteralExpression<float>(floatValue); .)
-	| String<out stringValue>	(. expression = new LiteralExpression<string>(stringValue); .)
+	lbracket 
+	Expr<out e>					(..)
+	rbracket
+	| IF(FollowedByBracket())FunctionInvocation 		(. factor = functionInvocationBuilder.Build(); .)
+	| Int<out intValue>			(. factor = new LiteralExpression<int>(intValue); .)
+	| Float<out floatValue>		(. factor = new LiteralExpression<float>(floatValue); .)
+	| String<out stringValue>	(. factor = new LiteralExpression<string>(stringValue); .)
+
 .
 
 FunctionInvocation				(.  string funcName;
@@ -76,27 +170,27 @@ FunctionInvocation				(.  string funcName;
 	Ident<out funcName>			(. functionInvocationBuilder.WithName(funcName); .)
 	ArgumentList				(.  .)
 .
-Arguments						(. Expression expression; .)
+Arguments						(. Expr expr; .)
 =
-	Expression<out expression>  (. functionInvocationBuilder.WithArgument(new Argument("", expression)); .)
-	{sepexpr Arguments} 
+	Expr<out expr>				(. functionInvocationBuilder.WithArgument(new Argument("", expr)); .)
+	{comma Arguments} 
 .
 
 ArgumentList					(. .) 
 =	
-	"(" 
+	lbracket 
 	Arguments					(. .)
-	")" 
+	rbracket 
 .
 
 
 ExpressionList					(. 
-								Expression expression;
+								Expr expr;
 								expressionListBuilder = ExpressionListBuilder.Start(); 
 								.) 
 = 
-	Expression<out expression>  (. expressionListBuilder.WithExpression(expression); .)
-	{sepexpr ExpressionList} 
+	Expr<out expr>				(. expressionListBuilder.WithItem(expr); .)
+	{comma ExpressionList} 
 .
 
 ModuleName						(. string modName; .) 
@@ -104,7 +198,7 @@ ModuleName						(. string modName; .)
 	Ident<out modName>			(. .)
 .
 
-TypeImport = "use" ModuleName ';' .
+TypeImport = use ModuleName semicolon .
 TypeImports = TypeImport {TypeImport} .
 
 ParameterDeclaration			(. 
@@ -118,15 +212,15 @@ ParameterDeclaration			(.
 
 ParameterDeclarations 
 = 
-	ParameterDeclaration		(. parameterListBuilder.WithParameter(parameterDeclarationBuilder.Build()); .)		
-	{"," ParameterDeclarations} 
+	ParameterDeclaration		(. parameterDeclarationListBuilder.WithItem(parameterDeclarationBuilder.Build()); .)		
+	{comma ParameterDeclarations} 
 .
 
-ParameterDeclarationList		(. parameterListBuilder = ParameterListBuilder.Start(); .) 
+ParameterDeclarationList		(. parameterDeclarationListBuilder = ParameterDeclarationListBuilder.Start(); .) 
 =	
-	"(" 
+	lbracket 
 	[ParameterDeclarations] 
-	")" 
+	rbracket 
 .
 
 
@@ -136,21 +230,22 @@ FunctionName					(. string funcName; .)
 .
 
 
-FunctionDefinition				(. string funcName; funcBuilder = FunctionBuilder.Start(); .) 
+FunctionDefinition				(. funcBuilder = FunctionBuilder.Start(); .) 
 = 
 	FunctionName
-	ParameterDeclarationList	(. funcBuilder.WithParameters( parameterListBuilder.Build() );.)
-	"=>" 
+	ParameterDeclarationList	(. funcBuilder.WithParameters( parameterDeclarationListBuilder.Build() );.)
+	lambda 
 	ExpressionList 
-	";" 
+	semicolon
 .
 
 FunctionDefinitions 
 = 
-	FunctionDefinition			(. astBuilder.WithFunction(funcBuilder.Build()); .)
-	{ FunctionDefinitions } .
+	FunctionDefinition			(. programBuilder.WithFunction(funcBuilder.Build()); .)
+	{ FunctionDefinitions } 
+.
 
-Fifth							(. astBuilder = ProgramBuilder.Start(); .)
+Fifth							(. programBuilder = ProgramBuilder.Start(); .)
 = 
 	TypeImports 
 	FunctionDefinitions 

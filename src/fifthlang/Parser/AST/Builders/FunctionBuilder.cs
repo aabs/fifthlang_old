@@ -9,10 +9,10 @@ namespace fifth.Parser.AST.Builders
         {
         }
 
-        public List<Expression> Body { get; private set; }
+        public List<Expr> Body { get; private set; }
         public string FunctionName { get; private set; }
         public IFifthType ReturnType { get; private set; }
-        internal ParameterDeclarationList ParameterDeclarations { get; private set; }
+        internal List<ParameterDeclaration> ParameterDeclarations { get; private set; }
 
         public static FunctionBuilder Start()
         {
@@ -29,7 +29,7 @@ namespace fifth.Parser.AST.Builders
             };
         }
 
-        public FunctionBuilder WithBody(List<Expression> expressions)
+        public FunctionBuilder WithBody(List<Expr> expressions)
         {
             this.Body = expressions;
             return this;
@@ -41,7 +41,7 @@ namespace fifth.Parser.AST.Builders
             return this;
         }
 
-        public FunctionBuilder WithParameters(ParameterDeclarationList parameterDeclarations)
+        public FunctionBuilder WithParameters(List<ParameterDeclaration> parameterDeclarations)
         {
             this.ParameterDeclarations = parameterDeclarations;
             return this;

@@ -9,13 +9,25 @@ using System;
 public class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
-	public const int _use = 2;
-	public const int _string = 3;
+	public const int _string = 2;
+	public const int _int = 3;
 	public const int _float = 4;
-	public const int _int = 5;
-	public const int _endexpr = 6;
-	public const int _sepexpr = 7;
-	public const int maxT = 11;
+	public const int _use = 5;
+	public const int _semicolon = 6;
+	public const int _comma = 7;
+	public const int _lbracket = 8;
+	public const int _rbracket = 9;
+	public const int _lambda = 10;
+	public const int _plus = 11;
+	public const int _minus = 12;
+	public const int _times = 13;
+	public const int _divide = 14;
+	public const int _equ = 15;
+	public const int _lt = 16;
+	public const int _gt = 17;
+	public const int _le = 18;
+	public const int _ge = 19;
+	public const int maxT = 20;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -28,12 +40,20 @@ public class Parser {
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
 
-public ProgramBuilder astBuilder;
-	FunctionBuilder funcBuilder;
-	ParameterListBuilder parameterListBuilder;
-	ExpressionListBuilder expressionListBuilder;
-	ParameterDeclarationBuilder parameterDeclarationBuilder;
-	FunctionInvocationBuilder functionInvocationBuilder;
+public ProgramBuilder			  programBuilder;
+	FunctionBuilder					  funcBuilder;
+	ListBuilder<ParameterDeclaration> parameterDeclarationListBuilder;
+	ListBuilder<Expr>				  expressionListBuilder;
+	ParameterDeclarationBuilder		  parameterDeclarationBuilder;
+	FunctionInvocationBuilder		  functionInvocationBuilder;
+	ExprBuilder						  exprBuilder;
+	SimExprBuilder					  simExprBuilder;
+	TermBuilder						  termBuilder;
+	bool FollowedByBracket() 
+	{   
+	Token x = scanner.Peek();  
+	return x.kind == _lbracket; 
+	}
 
 /*--------------------------------------------------------------------------*/
 
@@ -95,46 +115,130 @@ public ProgramBuilder astBuilder;
 	}
 
 	
+	void AddOp(out AddOperator op) {
+		op = AddOperator.Plus;	
+		if (la.kind == 11) {
+			Get();
+			
+		} else if (la.kind == 12) {
+			Get();
+			op = AddOperator.Minus;	
+		} else SynErr(21);
+	}
+
+	void MulOp(out MulOperator op) {
+		op = MulOperator.Multiply;	
+		if (la.kind == 13) {
+			Get();
+			
+		} else if (la.kind == 14) {
+			Get();
+			op = MulOperator.Divide;	
+		} else SynErr(22);
+	}
+
+	void RelOp(out RelationalOperator op) {
+		op = RelationalOperator.Equal;	
+		if (la.kind == 15) {
+			Get();
+			
+		} else if (la.kind == 16) {
+			Get();
+			op = RelationalOperator.LessThan;	
+		} else if (la.kind == 17) {
+			Get();
+			op = RelationalOperator.GreaterThan;	
+		} else if (la.kind == 18) {
+			Get();
+			op = RelationalOperator.LessThanOrEqual;	
+		} else if (la.kind == 19) {
+			Get();
+			op = RelationalOperator.GreaterThanOrEqual;	
+		} else SynErr(23);
+	}
+
+	void Expr(out Expr expr) {
+		SimExpr left, right; 
+		RelationalOperator relop;
+		expr = null;
+		
+		SimExpr(out left);
+		if (StartOf(1)) {
+			RelOp(out relop);
+			SimExpr(out right);
+		}
+	}
+
+	void SimExpr(out SimExpr expr) {
+		Term left, right; 
+		AddOperator addop;
+		expr = null;
+		
+		Term(out left);
+		while (la.kind == 11 || la.kind == 12) {
+			AddOp(out addop);
+			Term(out right);
+		}
+	}
+
+	void Term(out Term term) {
+		Factor left, right; 
+		MulOperator mulop;
+		term = null;
+		
+		Factor(out left);
+		while (la.kind == 13 || la.kind == 14) {
+			MulOp(out mulop);
+			Factor(out right);
+		}
+	}
+
+	void Factor(out Factor factor) {
+		string stringValue; 
+		int intValue; 
+		float floatValue; 
+		FunctionInvocationExpression fiexp;
+		factor = null;
+		Expr e;
+		
+		if (la.kind == 8) {
+			Get();
+			Expr(out e);
+			
+			Expect(9);
+		} else if (FollowedByBracket()) {
+			FunctionInvocation();
+			factor = functionInvocationBuilder.Build(); 
+		} else if (la.kind == 3) {
+			Int(out intValue);
+			factor = new LiteralExpression<int>(intValue); 
+		} else if (la.kind == 4) {
+			Float(out floatValue);
+			factor = new LiteralExpression<float>(floatValue); 
+		} else if (la.kind == 2) {
+			String(out stringValue);
+			factor = new LiteralExpression<string>(stringValue); 
+		} else SynErr(24);
+	}
+
 	void Ident(out string name) {
 		Expect(1);
 		name = t.val; 
 	}
 
 	void Int(out int value) {
-		Expect(5);
+		Expect(3);
 		value = Int32.Parse(t.val); 
 	}
 
 	void String(out string value) {
-		Expect(3);
+		Expect(2);
 		value = t.val; 
 	}
 
 	void Float(out float value) {
 		Expect(4);
 		value = Single.Parse(t.val); 
-	}
-
-	void Expression(out Expression expression) {
-		string stringValue; 
-		int intValue; 
-		float floatValue; 
-		FunctionInvocationExpression fiexp;
-		expression = null;
-		
-		if (la.kind == 1) {
-			FunctionInvocation();
-			expression = functionInvocationBuilder.Build(); 
-		} else if (la.kind == 5) {
-			Int(out intValue);
-			expression = new LiteralExpression<int>(intValue); 
-		} else if (la.kind == 4) {
-			Float(out floatValue);
-			expression = new LiteralExpression<float>(floatValue); 
-		} else if (la.kind == 3) {
-			String(out stringValue);
-			expression = new LiteralExpression<string>(stringValue); 
-		} else SynErr(12);
 	}
 
 	void FunctionInvocation() {
@@ -155,9 +259,9 @@ public ProgramBuilder astBuilder;
 	}
 
 	void Arguments() {
-		Expression expression; 
-		Expression(out expression);
-		functionInvocationBuilder.WithArgument(new Argument("", expression)); 
+		Expr expr; 
+		Expr(out expr);
+		functionInvocationBuilder.WithArgument(new Argument("", expr)); 
 		while (la.kind == 7) {
 			Get();
 			Arguments();
@@ -165,11 +269,11 @@ public ProgramBuilder astBuilder;
 	}
 
 	void ExpressionList() {
-		Expression expression;
+		Expr expr;
 		expressionListBuilder = ExpressionListBuilder.Start(); 
 		
-		Expression(out expression);
-		expressionListBuilder.WithExpression(expression); 
+		Expr(out expr);
+		expressionListBuilder.WithItem(expr); 
 		while (la.kind == 7) {
 			Get();
 			ExpressionList();
@@ -183,14 +287,14 @@ public ProgramBuilder astBuilder;
 	}
 
 	void TypeImport() {
-		Expect(2);
+		Expect(5);
 		ModuleName();
 		Expect(6);
 	}
 
 	void TypeImports() {
 		TypeImport();
-		while (la.kind == 2) {
+		while (la.kind == 5) {
 			TypeImport();
 		}
 	}
@@ -207,7 +311,7 @@ public ProgramBuilder astBuilder;
 
 	void ParameterDeclarations() {
 		ParameterDeclaration();
-		parameterListBuilder.WithParameter(parameterDeclarationBuilder.Build()); 
+		parameterDeclarationListBuilder.WithItem(parameterDeclarationBuilder.Build()); 
 		while (la.kind == 7) {
 			Get();
 			ParameterDeclarations();
@@ -215,7 +319,7 @@ public ProgramBuilder astBuilder;
 	}
 
 	void ParameterDeclarationList() {
-		parameterListBuilder = ParameterListBuilder.Start(); 
+		parameterDeclarationListBuilder = ParameterDeclarationListBuilder.Start(); 
 		Expect(8);
 		if (la.kind == 1) {
 			ParameterDeclarations();
@@ -230,10 +334,10 @@ public ProgramBuilder astBuilder;
 	}
 
 	void FunctionDefinition() {
-		string funcName; funcBuilder = FunctionBuilder.Start(); 
+		funcBuilder = FunctionBuilder.Start(); 
 		FunctionName();
 		ParameterDeclarationList();
-		funcBuilder.WithParameters( parameterListBuilder.Build() );
+		funcBuilder.WithParameters( parameterDeclarationListBuilder.Build() );
 		Expect(10);
 		ExpressionList();
 		Expect(6);
@@ -241,14 +345,14 @@ public ProgramBuilder astBuilder;
 
 	void FunctionDefinitions() {
 		FunctionDefinition();
-		astBuilder.WithFunction(funcBuilder.Build()); 
+		programBuilder.WithFunction(funcBuilder.Build()); 
 		while (la.kind == 1) {
 			FunctionDefinitions();
 		}
 	}
 
 	void Fifth() {
-		astBuilder = ProgramBuilder.Start(); 
+		programBuilder = ProgramBuilder.Start(); 
 		TypeImports();
 		FunctionDefinitions();
 	}
@@ -265,7 +369,8 @@ public ProgramBuilder astBuilder;
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_T, _T,_T,_T,_T, _x,_x}
 
 	};
 } // end Parser
@@ -281,17 +386,29 @@ public class Errors {
 		switch (n) {
 			case 0: s = "EOF expected"; break;
 			case 1: s = "ident expected"; break;
-			case 2: s = "use expected"; break;
-			case 3: s = "string expected"; break;
+			case 2: s = "string expected"; break;
+			case 3: s = "int expected"; break;
 			case 4: s = "float expected"; break;
-			case 5: s = "int expected"; break;
-			case 6: s = "endexpr expected"; break;
-			case 7: s = "sepexpr expected"; break;
-			case 8: s = "\"(\" expected"; break;
-			case 9: s = "\")\" expected"; break;
-			case 10: s = "\"=>\" expected"; break;
-			case 11: s = "??? expected"; break;
-			case 12: s = "invalid Expression"; break;
+			case 5: s = "use expected"; break;
+			case 6: s = "semicolon expected"; break;
+			case 7: s = "comma expected"; break;
+			case 8: s = "lbracket expected"; break;
+			case 9: s = "rbracket expected"; break;
+			case 10: s = "lambda expected"; break;
+			case 11: s = "plus expected"; break;
+			case 12: s = "minus expected"; break;
+			case 13: s = "times expected"; break;
+			case 14: s = "divide expected"; break;
+			case 15: s = "equ expected"; break;
+			case 16: s = "lt expected"; break;
+			case 17: s = "gt expected"; break;
+			case 18: s = "le expected"; break;
+			case 19: s = "ge expected"; break;
+			case 20: s = "??? expected"; break;
+			case 21: s = "invalid AddOp"; break;
+			case 22: s = "invalid MulOp"; break;
+			case 23: s = "invalid RelOp"; break;
+			case 24: s = "invalid Factor"; break;
 
 			default: s = "error " + n; break;
 		}

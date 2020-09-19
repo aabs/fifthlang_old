@@ -1,13 +1,12 @@
-﻿using fifth.VirtualMachine;
-using System.Collections.Generic;
-
-namespace fifth.Parser.AST.Builders
+﻿namespace fifth.Parser.AST.Builders
 {
     public class ParameterDeclarationBuilder
     {
-        public List<ParameterDeclaration> ParameterDeclarations { get; private set; }
+        public ParameterDeclarationBuilder()
+        {
+        }
+
         public string ParameterName { get; private set; }
-        public IFifthType ParameterType { get; private set; }
         public string TypeName { get; private set; }
 
         public static ParameterDeclarationBuilder Start()
@@ -19,26 +18,20 @@ namespace fifth.Parser.AST.Builders
         {
             return new ParameterDeclaration
             {
-                ParameterType = this.ParameterType,
-                ParameterName = this.ParameterName
+                ParameterName = ParameterName,
+                TypeName = TypeName
             };
         }
 
-        public ParameterDeclarationBuilder WithName(string name)
+        public ParameterDeclarationBuilder WithName(string parameterName)
         {
-            this.ParameterName = name;
+            ParameterName = parameterName;
             return this;
         }
 
-        public ParameterDeclarationBuilder WithType(IFifthType type)
+        public ParameterDeclarationBuilder WithTypeName(string typeName)
         {
-            this.ParameterType = type;
-            return this;
-        }
-
-        public ParameterDeclarationBuilder WithTypeName(string name)
-        {
-            this.TypeName = name;
+            TypeName = typeName;
             return this;
         }
     }

@@ -1,0 +1,79 @@
+// import using a list of identifiers
+use std, io, lob;
+
+// variables are created/declared on first use
+// uses type inference to work out type
+// can assign into the global scope
+// io provides functions to simply parse CLI args
+user_id = io.get_arg("n", "user_id");
+
+// maybe provided by lob package
+// describes the ground state knowledge store and where it comes from
+// targets a remote graph based on the user id found on lob.com
+// successful completion of main() results in sync of ground state back to lob.com graph
+// only one such declaration per process(?)
+// is this mandatory?  What if it is not present?  Just regular code w/ I/O, or explicit push to store?
+with ground state
+    in store http://lob.com/users
+    in graph user_id;
+
+// default entry point
+// must return success to push to ground state knowledge store
+// => introduces a function definition body (a list of expressions)
+main() =>
+    // whitespace and indentation are ignored (no offside rule)
+    // assignment stores value in scope environment
+    // lexical scoping
+    // type inference derived from type of last expression of 'get_new_address()'
+    new_addr = get_new_address();
+    // var names can have '?' at end 
+    // must be of type boolean
+    terminate? = get_should_terminate();
+    start_date = get_start_date();
+
+    // 'self' is the ground state knowledge store
+    // ?= is an assignment that only works if "if" returns a value. 
+    // ?-> this is shit and ugly
+    self.address |> std.map(addr => a.until ?= if(terminate?) start_date);
+
+    // this is a statement.  ?? do I want these in the lang? if not, what do I yield for alternative path?
+    if(terminate?)
+        foreach(a in self.address) // standard iteration model, with inference?
+            a.until = start_date;
+    
+    // cardinality of address (or any other property of self?) should not be assumed
+    // therefore '+=' makes sense
+    self.address += new_addr;
+    // pushes any assertions (such as to address) into the ground state knowledge store
+    // is this necessary?  Should it always be explicit, so it can be managed properly?
+    self.commit .
+
+get_new_address() =>
+    // 'io.ask' prompts user, gathers result
+    addr1 = io.ask("address line 1");
+    addr2 = io.ask("address line 2");
+    town = io.ask("town/city");
+    postcode = io.ask("postcode");
+    region = io.ask("region");
+    country = io.ask("country");
+    // instantiate new Address object, populating with data gathered
+    new Address{
+        address1 = addr1,
+        address2 = addr2,
+        town = town,
+        postcode = postcode,
+        region = region,
+        country = country
+    } .
+
+get_should_terminate() =>
+    io.ask("moving out of old place(s) as well? [Yn]")
+    |> switch{ // piping of values as per elixir
+        "y", "Y" -> true // combining alternatives into list in switch statement
+        "n", "N" -> false
+        * -> true // match all clause
+    } .
+
+get_start_date() =>
+    io.ask("when are you moving?")
+    |> std.to_date . // standard pkg should have proper date handling functions

@@ -1,0 +1,7 @@
+import t from <http://telstra.com.au/tlive/tagging/2020/09#>
+import l from <http://lob.com/lifeobjects/2020/09#>
+import x from <http://w3.org/datatypes/1894/09#>
+
+class Address : t.Taggable, l.EphemeralThing {
+    address1, address2, postcode, town, region, country: x.string 
+}

@@ -1,6 +1,6 @@
 grammar fifth;
 
-fifth:
+fifth: 
     module_import*
     function_declaration*
 ;
